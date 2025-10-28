@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Moto{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-10 offset-md-1">
+        <h2 class="mb-4">
+            {% if form.instance.pk %}
+                <i class="bi bi-pencil-square"></i> Editar Moto
+            {% else %}
+                <i class="bi bi-plus-circle"></i> Nueva Moto
+            {% endif %}
+        </h2>
+
+        <div class="card">
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <h5 class="mb-3 text-primary"><i class="bi bi-info-circle"></i> Información de la Moto</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Código Moto <span class="text-danger">*</span></label>
+                            {{ form.codigo_moto }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Patente <span class="text-danger">*</span></label>
+                            {{ form.patente }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Marca</label>
+                            {{ form.marca }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Modelo</label>
+                            {{ form.modelo }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Color</label>
+                            {{ form.color }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Año</label>
+                            {{ form.anio }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Número Chasis <span class="text-danger">*</span></label>
+                            {{ form.numero_chasis }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Motor</label>
+                            {{ form.motor }}
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3 text-primary"><i class="bi bi-person-check"></i> Información de Propiedad</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Propietario <span class="text-danger">*</span></label>
+                            {{ form.propietario_moto }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Motorista Asignado</label>
+                            {{ form.id_motorista_asignado }}
+                        </div>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Guardar
+                        </button>
+                        <a href="{% url 'moto_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

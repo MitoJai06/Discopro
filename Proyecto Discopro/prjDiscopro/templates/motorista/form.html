@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nuevo{% endif %} Motorista{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-10 offset-md-1">
+        <h2 class="mb-4">
+            {% if form.instance.pk %}
+                <i class="bi bi-pencil-square"></i> Editar Motorista
+            {% else %}
+                <i class="bi bi-plus-circle"></i> Nuevo Motorista
+            {% endif %}
+        </h2>
+
+        <div class="card">
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <h5 class="mb-3 text-primary"><i class="bi bi-info-circle"></i> Información General</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Código <span class="text-danger">*</span></label>
+                            {{ form.codigo_motorista }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">RUT <span class="text-danger">*</span></label>
+                            {{ form.rut }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Pasaporte (Opcional)</label>
+                            {{ form.pasaporte }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Nombres <span class="text-danger">*</span></label>
+                            {{ form.nombre }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Apellido Paterno <span class="text-danger">*</span></label>
+                            {{ form.apellido_paterno }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Apellido Materno <span class="text-danger">*</span></label>
+                            {{ form.apellido_materno }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Fecha Nacimiento <span class="text-danger">*</span></label>
+                        {{ form.fecha_nacimiento }}
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3 text-primary"><i class="bi bi-geo-alt"></i> Información de Contacto</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Dirección</label>
+                        {{ form.direccion }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Comuna</label>
+                            {{ form.id_comuna }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Teléfono <span class="text-danger">*</span></label>
+                            {{ form.telefono }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Correo Electrónico <span class="text-danger">*</span></label>
+                        {{ form.correo }}
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3 text-primary"><i class="bi bi-scooter"></i> Información Adicional</h5>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="incluye_moto" 
+                               name="incluye_moto_personal" value="1" {% if form.instance.incluye_moto_personal %}checked{% endif %}>
+                        <label class="form-check-label" for="incluye_moto">
+                            ¿Incluye Moto Personal?
+                        </label>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Guardar
+                        </button>
+                        <a href="{% url 'motorista_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

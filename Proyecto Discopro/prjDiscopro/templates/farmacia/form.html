@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Farmacia{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <h2 class="mb-4">
+            {% if form.instance.pk %}
+                <i class="bi bi-pencil-square"></i> Editar Farmacia
+            {% else %}
+                <i class="bi bi-plus-circle"></i> Nueva Farmacia
+            {% endif %}
+        </h2>
+
+        <div class="card">
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Código Farmacia <span class="text-danger">*</span></label>
+                            {{ form.codigo_farmacia }}
+                            {% if form.codigo_farmacia.errors %}
+                                <div class="text-danger small mt-1">{{ form.codigo_farmacia.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Nombre <span class="text-danger">*</span></label>
+                            {{ form.nombre_farmacia }}
+                            {% if form.nombre_farmacia.errors %}
+                                <div class="text-danger small mt-1">{{ form.nombre_farmacia.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Dirección <span class="text-danger">*</span></label>
+                        {{ form.direccion }}
+                        {% if form.direccion.errors %}
+                            <div class="text-danger small mt-1">{{ form.direccion.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Comuna <span class="text-danger">*</span></label>
+                            {{ form.id_comuna }}
+                            {% if form.id_comuna.errors %}
+                                <div class="text-danger small mt-1">{{ form.id_comuna.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Teléfono <span class="text-danger">*</span></label>
+                            {{ form.telefono }}
+                            {% if form.telefono.errors %}
+                                <div class="text-danger small mt-1">{{ form.telefono.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Horario Apertura</label>
+                            {{ form.horario_apertura }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Horario Cierre</label>
+                            {{ form.horario_cierre }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Latitud</label>
+                            {{ form.latitud }}
+                            <small class="text-muted">Ej: -33.550000</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Longitud</label>
+                            {{ form.longitud }}
+                            <small class="text-muted">Ej: -70.666666</small>
+                        </div>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Guardar
+                        </button>
+                        <a href="{% url 'farmacia_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

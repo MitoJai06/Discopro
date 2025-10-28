@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% block title %}Farmacia - {{ farmacia.nombre_farmacia }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-hospital"></i> 
+                {{ farmacia.nombre_farmacia }}
+            </h2>
+            <a href="{% url 'farmacia_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <!-- Información General -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información General</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Código:</strong> {{ farmacia.codigo_farmacia }}</p>
+                        <p><strong>Nombre:</strong> {{ farmacia.nombre_farmacia }}</p>
+                        <p><strong>Dirección:</strong> {{ farmacia.direccion }}</p>
+                        <p><strong>Comuna:</strong> {{ farmacia.id_comuna.nombre_comuna|default:"N/A" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Teléfono:</strong> {{ farmacia.telefono }}</p>
+                        <p><strong>Horario:</strong> 
+                            {% if farmacia.horario_apertura %}
+                                {{ farmacia.horario_apertura|time:"H:i" }} - {{ farmacia.horario_cierre|time:"H:i" }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                        <p><strong>Coordenadas:</strong> 
+                            {% if farmacia.latitud %}
+                                {{ farmacia.latitud }}, {{ farmacia.longitud }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <a href="{% url 'farmacia_update' farmacia.codigo_farmacia %}" class="btn btn-warning mt-3">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+            </div>
+        </div>
+
+        <!-- MOTORISTAS ASIGNADOS -->
+        <div class="card">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-person-badge"></i> Motoristas Asignados</h6>
+                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#asignarModal">
+                    <i class="bi bi-plus"></i> Asignar Motorista
+                </button>
+            </div>
+            <div class="card-body">
+                {% if asignaciones %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>RUT</th>
+                                <th>Teléfono</th>
+                                <th>Fecha Asignación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asignacion in asignaciones %}
+                            <tr>
+                                <td>{{ asignacion.id_motorista.codigo_motorista }}</td>
+                                <td>{{ asignacion.id_motorista.nombre }} {{ asignacion.id_motorista.apellido_paterno }}</td>
+                                <td>{{ asignacion.id_motorista.rut }}</td>
+                                <td>{{ asignacion.id_motorista.telefono }}</td>
+                                <td>{{ asignacion.fecha_asignacion|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#reemplazarModal{{ asignacion.id_asignacion }}">
+                                        <i class="bi bi-arrow-repeat"></i> Reemplazar
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#desasignarModal{{ asignacion.id_asignacion }}">
+                                        <i class="bi bi-x-circle"></i> Desasignar
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Modal Reemplazar -->
+                            <div class="modal fade" id="reemplazarModal{{ asignacion.id_asignacion }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reemplazar Motorista</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <div class="modal-body">
+                                                <input type="hidden" name="reemplazar_motorista" value="1">
+                                                <input type="hidden" name="asignacion_id" value="{{ asignacion.id_asignacion }}">
+                                                <p>Motorista actual: <strong>{{ asignacion.id_motorista.nombre }} {{ asignacion.id_motorista.apellido_paterno }}</strong></p>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Nuevo Motorista:</label>
+                                                    <select name="nuevo_motorista_id" class="form-control" required>
+                                                        <option value="">Seleccione un motorista...</option>
+                                                        {% for motorista in motoristas_disponibles %}
+                                                        <option value="{{ motorista.codigo_motorista }}">
+                                                            {{ motorista.codigo_motorista }} - {{ motorista.nombre }} {{ motorista.apellido_paterno }} ({{ motorista.rut }})
+                                                        </option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-warning">Reemplazar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal Desasignar -->
+                            <div class="modal fade" id="desasignarModal{{ asignacion.id_asignacion }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">Confirmar Desasignación</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <div class="modal-body">
+                                                <input type="hidden" name="desasignar_motorista" value="1">
+                                                <input type="hidden" name="asignacion_id" value="{{ asignacion.id_asignacion }}">
+                                                <p>¿Está seguro de desasignar a <strong>{{ asignacion.id_motorista.nombre }} {{ asignacion.id_motorista.apellido_paterno }}</strong> de esta farmacia?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-danger">Desasignar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted"><i class="bi bi-info-circle"></i> No hay motoristas asignados a esta farmacia</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Asignar Motorista -->
+<div class="modal fade" id="asignarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Asignar Motorista</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="asignar_motorista" value="1">
+                    <div class="mb-3">
+                        <label class="form-label">Seleccione Motorista:</label>
+                        <select name="motorista_id" class="form-control" required>
+                            <option value="">Seleccione un motorista...</option>
+                            {% for motorista in motoristas_disponibles %}
+                            <option value="{{ motorista.codigo_motorista }}">
+                                {{ motorista.codigo_motorista }} - {{ motorista.nombre }} {{ motorista.apellido_paterno }} {{ motorista.apellido_materno }} ({{ motorista.rut }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if not motoristas_disponibles %}
+                        <small class="text-muted">No hay motoristas disponibles para asignar</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" {% if not motoristas_disponibles %}disabled{% endif %}>Asignar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

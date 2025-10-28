@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% block title %}{{ motorista.nombre }} {{ motorista.apellido_paterno }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-person-badge"></i> 
+                {{ motorista.nombre }} {{ motorista.apellido_paterno }} {{ motorista.apellido_materno }}
+            </h2>
+            <a href="{% url 'motorista_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <!-- Información General -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información General</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Código:</strong> {{ motorista.codigo_motorista }}</p>
+                        <p><strong>RUT:</strong> {{ motorista.rut }}</p>
+                        <p><strong>Pasaporte:</strong> {{ motorista.pasaporte|default:"No registrado" }}</p>
+                        <p><strong>Fecha Nacimiento:</strong> {{ motorista.fecha_nacimiento|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Teléfono:</strong> {{ motorista.telefono }}</p>
+                        <p><strong>Correo:</strong> {{ motorista.correo }}</p>
+                        <p><strong>Dirección:</strong> {{ motorista.direccion|default:"No registrada" }}</p>
+                        <p>
+                            <strong>Moto Personal:</strong>
+                            {% if motorista.incluye_moto_personal %}
+                                <span class="badge bg-success">Sí</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <a href="{% url 'motorista_update' motorista.codigo_motorista %}" class="btn btn-warning mt-3">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+            </div>
+        </div>
+
+        <!-- FARMACIAS ASIGNADAS -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="bi bi-hospital"></i> Farmacias Asignadas</h6>
+            </div>
+            <div class="card-body">
+                {% if farmacias_asignadas %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Dirección</th>
+                                <th>Fecha Asignación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asignacion in farmacias_asignadas %}
+                            <tr>
+                                <td>{{ asignacion.id_farmacia.codigo_farmacia }}</td>
+                                <td>{{ asignacion.id_farmacia.nombre_farmacia }}</td>
+                                <td>{{ asignacion.id_farmacia.direccion }}</td>
+                                <td>{{ asignacion.fecha_asignacion|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted"><i class="bi bi-info-circle"></i> No está asignado a ninguna farmacia</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Contactos de Emergencia -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-telephone"></i> Contactos de Emergencia</h6>
+                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#contactoModal">
+                    <i class="bi bi-plus"></i> Agregar
+                </button>
+            </div>
+            <div class="card-body">
+                {% if contactos %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Parentesco</th>
+                                <th>Teléfono</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for contacto in contactos %}
+                            <tr>
+                                <td>{{ contacto.nombre_completo }}</td>
+                                <td>{{ contacto.parentesco }}</td>
+                                <td>{{ contacto.telefono }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted"><i class="bi bi-info-circle"></i> No hay contactos de emergencia</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Licencia de Conducir -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-file-earmark"></i> Licencia de Conducir</h6>
+                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#licenciaModal">
+                    <i class="bi bi-plus"></i> Registrar
+                </button>
+            </div>
+            <div class="card-body">
+                {% if licencia %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Tipo Licencia:</strong> {{ licencia.tipo_licencia }}</p>
+                        <p><strong>Último Control:</strong> {{ licencia.fecha_control|date:"d/m/Y"|default:"No registrado" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Vencimiento:</strong> {{ licencia.fecha_vencimiento|date:"d/m/Y" }}</p>
+                        {% if licencia.ruta_adjunto_archivo %}
+                        <p><a href="{{ licencia.ruta_adjunto_archivo }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-paperclip"></i> Ver Adjunto
+                        </a></p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted"><i class="bi bi-info-circle"></i> No hay licencia registrada</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Contacto Emergencia -->
+<div class="modal fade" id="contactoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar Contacto Emergencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="add_contacto" value="1">
+                    {% for field in contacto_form %}
+                        {% if field.name != 'id_motorista' %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Licencia -->
+<div class="modal fade" id="licenciaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrar Licencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="add_licencia" value="1">
+                    {% for field in licencia_form %}
+                        {% if field.name != 'id_motorista' %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

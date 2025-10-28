@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}Moto - {{ moto.patente }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-scooter"></i> 
+                Moto - <span class="badge bg-primary">{{ moto.patente }}</span>
+            </h2>
+            <a href="{% url 'moto_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <!-- Información General -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información General</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Código:</strong> {{ moto.codigo_moto }}</p>
+                        <p><strong>Marca:</strong> {{ moto.marca }}</p>
+                        <p><strong>Modelo:</strong> {{ moto.modelo }}</p>
+                        <p><strong>Color:</strong> {{ moto.color }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Año:</strong> {{ moto.anio }}</p>
+                        <p><strong>Motor:</strong> {{ moto.motor }}</p>
+                        <p><strong>Número Chasis:</strong> {{ moto.numero_chasis }}</p>
+                        <p>
+                            <strong>Propietario:</strong>
+                            {% if moto.propietario_moto == 'Empresa' %}
+                                <span class="badge bg-info">Empresa</span>
+                            {% else %}
+                                <span class="badge bg-success">Motorista</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% if moto.id_motorista_asignado %}
+                <p>
+                    <strong>Motorista Asignado:</strong> 
+                    {{ moto.id_motorista_asignado.nombre }} {{ moto.id_motorista_asignado.apellido_paterno }}
+                </p>
+                {% endif %}
+                <a href="{% url 'moto_update' moto.codigo_moto %}" class="btn btn-warning mt-3">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+            </div>
+        </div>
+
+        <!-- Documentación -->
+        <div class="card">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-file-earmark"></i> Documentación por Año</h6>
+                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#docModal">
+                    <i class="bi bi-plus"></i> Agregar Documento
+                </button>
+            </div>
+            <div class="card-body">
+                {% if documentacion %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-calendar"></i> Año</th>
+                                <th><i class="bi bi-file-text"></i> Tipo Documento</th>
+                                <th><i class="bi bi-calendar-event"></i> Vencimiento</th>
+                                <th>Archivo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in documentacion %}
+                            <tr>
+                                <td><strong>{{ doc.anio }}</strong></td>
+                                <td>{{ doc.tipo_documento }}</td>
+                                <td>
+                                    {% if doc.fecha_vencimiento %}
+                                        {{ doc.fecha_vencimiento|date:"d/m/Y" }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if doc.ruta_adjunto_archivo %}
+                                        <a href="{{ doc.ruta_adjunto_archivo }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-paperclip"></i> Ver Archivo
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Sin archivo</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted"><i class="bi bi-info-circle"></i> No hay documentación registrada</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Documentación -->
+<div class="modal fade" id="docModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar Documentación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="add_doc" value="1">
+                    {% for field in doc_form %}
+                        {% if field.name != 'id_moto' %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

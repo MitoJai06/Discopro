@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %}Motos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-scooter"></i> Motos</h2>
+            <a href="{% url 'moto_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nueva Moto
+            </a>
+        </div>
+
+        <!-- BARRA DE BUSQUEDA -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="get" action="{% url 'moto_list' %}">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar por patente, marca, modelo, chasis o código..." value="{{ query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                        {% if query %}
+                        <a href="{% url 'moto_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Limpiar
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if query %}
+        <div class="alert alert-info">
+            Resultados de búsqueda para: <strong>{{ query }}</strong>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                {% if motos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-hash"></i> Código</th>
+                                <th><i class="bi bi-tag"></i> Patente</th>
+                                <th><i class="bi bi-tools"></i> Marca/Modelo</th>
+                                <th><i class="bi bi-calendar"></i> Año</th>
+                                <th><i class="bi bi-person"></i> Propietario</th>
+                                <th>Motorista</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for moto in motos %}
+                            <tr>
+                                <td><strong>#{{ moto.codigo_moto }}</strong></td>
+                                <td><span class="badge bg-primary">{{ moto.patente }}</span></td>
+                                <td>{{ moto.marca }} {{ moto.modelo }}</td>
+                                <td>{{ moto.anio }}</td>
+                                <td>
+                                    {% if moto.propietario_moto == 'Empresa' %}
+                                        <span class="badge bg-info">Empresa</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Motorista</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if moto.id_motorista_asignado %}
+                                        {{ moto.id_motorista_asignado.nombre }}
+                                    {% else %}
+                                        <span class="text-muted">Sin asignar</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'moto_detail' moto.codigo_moto %}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    <a href="{% url 'moto_update' moto.codigo_moto %}" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                    <a href="{% url 'moto_delete' moto.codigo_moto %}" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if is_paginated %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}">Primera</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        <li class="page-item active">
+                            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Siguiente</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">Última</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i> No se encontraron motos. 
+                    {% if query %}
+                        <a href="{% url 'moto_list' %}">Ver todas</a>
+                    {% else %}
+                        <a href="{% url 'moto_create' %}">Crear una nueva</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

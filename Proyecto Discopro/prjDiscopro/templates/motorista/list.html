@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Motoristas{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-person-badge"></i> Motoristas</h2>
+            <a href="{% url 'motorista_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Motorista
+            </a>
+        </div>
+
+        <!-- BARRA DE BUSQUEDA -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="get" action="{% url 'motorista_list' %}">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar por nombre, RUT, correo, teléfono o código..." value="{{ query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                        {% if query %}
+                        <a href="{% url 'motorista_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Limpiar
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if query %}
+        <div class="alert alert-info">
+            Resultados de búsqueda para: <strong>{{ query }}</strong>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                {% if motoristas %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="bi bi-hash"></i> Código</th>
+                                <th><i class="bi bi-person"></i> Nombre</th>
+                                <th><i class="bi bi-file-text"></i> RUT</th>
+                                <th><i class="bi bi-telephone"></i> Teléfono</th>
+                                <th><i class="bi bi-envelope"></i> Correo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for motorista in motoristas %}
+                            <tr>
+                                <td><strong>#{{ motorista.codigo_motorista }}</strong></td>
+                                <td>{{ motorista.nombre }} {{ motorista.apellido_paterno }}</td>
+                                <td>{{ motorista.rut }}</td>
+                                <td>{{ motorista.telefono }}</td>
+                                <td>{{ motorista.correo }}</td>
+                                <td>
+                                    <a href="{% url 'motorista_detail' motorista.codigo_motorista %}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    <a href="{% url 'motorista_update' motorista.codigo_motorista %}" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                    <a href="{% url 'motorista_delete' motorista.codigo_motorista %}" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if is_paginated %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}">Primera</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        <li class="page-item active">
+                            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Siguiente</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">Última</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i> No se encontraron motoristas. 
+                    {% if query %}
+                        <a href="{% url 'motorista_list' %}">Ver todos</a>
+                    {% else %}
+                        <a href="{% url 'motorista_create' %}">Crear uno nuevo</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
