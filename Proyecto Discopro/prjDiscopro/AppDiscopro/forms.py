@@ -1,5 +1,5 @@
 from django import forms
-from .models import Farmacia, Motorista, Moto, ContactoEmergencia, LicenciaMotorista, DocumentacionMoto
+from .models import Farmacia, Motorista, Moto, ContactoEmergencia, LicenciaMotorista, DocumentacionMoto, Despacho, Incidencia, TipoDespacho
 
 class FarmaciaForm(forms.ModelForm):
     class Meta:
@@ -139,3 +139,217 @@ class DocumentacionMotoForm(forms.ModelForm):
             'ruta_adjunto_archivo': 'Archivo',
             'fecha_vencimiento': 'Vencimiento',
         }
+
+class DespachoBaseForm(forms.ModelForm):
+    """Formulario base para todos los tipos de despacho"""
+    class Meta:
+        model = Despacho
+        fields = ['codigo_orden_farmacia', 'id_farmacia_origen', 'id_motorista', 
+                  'id_moto', 'direccion_entrega', 'observaciones']
+        widgets = {
+            'codigo_orden_farmacia': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Código de orden de la farmacia'
+            }),
+            'id_farmacia_origen': forms.Select(attrs={'class': 'form-control'}),
+            'id_motorista': forms.Select(attrs={'class': 'form-control'}),
+            'id_moto': forms.Select(attrs={'class': 'form-control'}),
+            'direccion_entrega': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Dirección completa de entrega'
+            }),
+            'observaciones': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Observaciones adicionales (opcional)'
+            }),
+        }
+        labels = {
+            'codigo_orden_farmacia': 'Código de Orden',
+            'id_farmacia_origen': 'Farmacia Origen',
+            'id_motorista': 'Motorista Asignado',
+            'id_moto': 'Moto',
+            'direccion_entrega': 'Dirección de Entrega',
+            'observaciones': 'Observaciones',
+        }
+
+
+class DespachoDirectoForm(DespachoBaseForm):
+    """Formulario para despacho directo"""
+    pass
+
+
+class DespachoConRecetaForm(DespachoBaseForm):
+    """Formulario para despacho con receta"""
+    numero_receta = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Número de receta'
+        }),
+        label='Número de Receta'
+    )
+    nombre_medico = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre del médico'
+        }),
+        label='Médico'
+    )
+    fecha_emision_receta = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        label='Fecha de Emisión'
+    )
+    observaciones_receta = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 2,
+            'placeholder': 'Observaciones de la receta'
+        }),
+        label='Observaciones de Receta'
+    )
+
+
+class DespachoConTrasladoForm(DespachoBaseForm):
+    """Formulario para despacho con traslado"""
+    class Meta(DespachoBaseForm.Meta):
+        fields = DespachoBaseForm.Meta.fields + ['id_farmacia_origen_secundaria']
+        widgets = {
+            **DespachoBaseForm.Meta.widgets,
+            'id_farmacia_origen_secundaria': forms.Select(attrs={
+                'class': 'form-control',
+                'required': 'required'
+            }),
+        }
+        labels = {
+            **DespachoBaseForm.Meta.labels,
+            'id_farmacia_origen_secundaria': 'Farmacia Secundaria (Con Stock)',
+        }
+
+
+class DespachoConReenvioForm(forms.ModelForm):
+    """Formulario para despacho con reenvío"""
+    id_despacho_original = forms.ModelChoiceField(
+        queryset=Despacho.objects.filter(estado='FALLIDO'),
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Despacho Original',
+        help_text='Seleccione el despacho fallido que desea reenviar'
+    )
+    
+    class Meta:
+        model = Despacho
+        fields = ['id_despacho_original', 'id_motorista', 'id_moto', 
+                  'direccion_entrega', 'observaciones']
+        widgets = {
+            'id_motorista': forms.Select(attrs={'class': 'form-control'}),
+            'id_moto': forms.Select(attrs={'class': 'form-control'}),
+            'direccion_entrega': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Dirección de entrega (mantener o modificar)'
+            }),
+            'observaciones': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Motivo del reenvío y observaciones'
+            }),
+        }
+        labels = {
+            'id_motorista': 'Motorista para Reenvío',
+            'id_moto': 'Moto',
+            'direccion_entrega': 'Dirección de Entrega',
+            'observaciones': 'Observaciones del Reenvío',
+        }
+
+
+class ModificarDespachoForm(forms.ModelForm):
+    """Formulario para modificar un despacho existente"""
+    class Meta:
+        model = Despacho
+        fields = ['id_motorista', 'id_moto', 'direccion_entrega', 'estado', 'observaciones']
+        widgets = {
+            'id_motorista': forms.Select(attrs={'class': 'form-control'}),
+            'id_moto': forms.Select(attrs={'class': 'form-control'}),
+            'direccion_entrega': forms.TextInput(attrs={'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+            'observaciones': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3
+            }),
+        }
+        labels = {
+            'id_motorista': 'Motorista',
+            'id_moto': 'Moto',
+            'direccion_entrega': 'Dirección de Entrega',
+            'estado': 'Estado',
+            'observaciones': 'Observaciones',
+        }
+
+
+class IncidenciaForm(forms.ModelForm):
+    """Formulario para registrar incidencias"""
+    class Meta:
+        model = Incidencia
+        fields = ['tipo_incidencia', 'descripcion']
+        widgets = {
+            'tipo_incidencia': forms.Select(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Describa la incidencia en detalle'
+            }),
+        }
+        labels = {
+            'tipo_incidencia': 'Tipo de Incidencia',
+            'descripcion': 'Descripción',
+        }
+
+
+class FiltroReporteForm(forms.Form):
+    """Formulario para filtros de reportes"""
+    fecha_inicio = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        label='Fecha Inicio'
+    )
+    fecha_fin = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        label='Fecha Fin'
+    )
+    id_region = forms.ModelChoiceField(
+        queryset=None,  # Se establecerá en __init__
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Región',
+        empty_label='Todas las regiones'
+    )
+    id_tipo_despacho = forms.ModelChoiceField(
+        queryset=TipoDespacho.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Tipo de Despacho',
+        empty_label='Todos los tipos'
+    )
+    estado = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Todos los estados')] + Despacho.ESTADO_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Estado'
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import Region
+        self.fields['id_region'].queryset = Region.objects.all()

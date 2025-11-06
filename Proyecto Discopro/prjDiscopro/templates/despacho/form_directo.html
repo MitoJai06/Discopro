@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo Despacho Directo{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-box-arrow-right"></i> Nuevo Despacho Directo
+            </h2>
+            <a href="{% url 'despacho_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            <strong>Despacho Directo:</strong> Despacho simple desde la farmacia asignada hasta la dirección del cliente.
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <h5 class="mb-3 text-primary"><i class="bi bi-hospital"></i> Información de Origen</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Código de Orden <span class="text-danger">*</span></label>
+                        {{ form.codigo_orden_farmacia }}
+                        {% if form.codigo_orden_farmacia.errors %}
+                            <div class="text-danger small mt-1">{{ form.codigo_orden_farmacia.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Farmacia Origen <span class="text-danger">*</span></label>
+                        {{ form.id_farmacia_origen }}
+                        {% if form.id_farmacia_origen.errors %}
+                            <div class="text-danger small mt-1">{{ form.id_farmacia_origen.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3 text-primary"><i class="bi bi-geo-alt"></i> Información de Entrega</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Dirección de Entrega <span class="text-danger">*</span></label>
+                        {{ form.direccion_entrega }}
+                        {% if form.direccion_entrega.errors %}
+                            <div class="text-danger small mt-1">{{ form.direccion_entrega.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3 text-primary"><i class="bi bi-person-badge"></i> Asignación de Motorista</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Motorista <span class="text-danger">*</span></label>
+                            {{ form.id_motorista }}
+                            {% if form.id_motorista.errors %}
+                                <div class="text-danger small mt-1">{{ form.id_motorista.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Moto <span class="text-danger">*</span></label>
+                            {{ form.id_moto }}
+                            {% if form.id_moto.errors %}
+                                <div class="text-danger small mt-1">{{ form.id_moto.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Observaciones</label>
+                        {{ form.observaciones }}
+                        {% if form.observaciones.errors %}
+                            <div class="text-danger small mt-1">{{ form.observaciones.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Crear Despacho
+                        </button>
+                        <a href="{% url 'despacho_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

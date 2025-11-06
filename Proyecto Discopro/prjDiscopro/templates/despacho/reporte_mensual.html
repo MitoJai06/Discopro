@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% block title %}Reporte Mensual{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-calendar-month"></i> Reporte Mensual de Despachos</h2>
+            <div>
+                <a href="{% url 'generar_pdf_reporte' %}?tipo=mensual&fecha={{ fecha|date:'Y-m-d' }}" 
+                   class="btn btn-danger" target="_blank">
+                    <i class="bi bi-file-pdf"></i> Descargar PDF
+                </a>
+                <a href="{% url 'despacho_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        <!-- Selector de Mes/Año -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="get" class="row align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Seleccionar Mes:</label>
+                        <input type="month" name="fecha" class="form-control" 
+                               value="{{ fecha|date:'Y-m' }}" max="{{ fecha|date:'Y-m' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Consultar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Período del Reporte -->
+        <div class="alert alert-primary">
+            <h5 class="mb-0">
+                <i class="bi bi-calendar-range"></i> 
+                Período: <strong>{{ primer_dia|date:"d/m/Y" }} - {{ ultimo_dia|date:"d/m/Y" }}</strong>
+                ({{ fecha|date:"F Y" }})
+            </h5>
+        </div>
+
+        <!-- Resumen General -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body text-center">
+                        <h3>{{ total_despachos }}</h3>
+                        <p class="mb-0">Total Despachos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-danger">
+                    <div class="card-body text-center">
+                        <h3>{{ total_incidencias }}</h3>
+                        <p class="mb-0">Incidencias</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body text-center">
+                        <h3>
+                            {% for item in despachos_por_estado %}
+                                {% if item.estado == 'FINALIZADO' %}{{ item.total }}{% endif %}
+                            {% endfor %}
+                        </h3>
+                        <p class="mb-0">Finalizados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body text-center">
+                        <h3>{% widthratio total_despachos 30 1 %}</h3>
+                        <p class="mb-0">Promedio Diario</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Despachos por Estado -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Despachos por Estado</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if despachos_por_estado %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Estado</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th class="text-end">Porcentaje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in despachos_por_estado %}
+                                <tr>
+                                    <td>{{ item.estado }}</td>
+                                    <td class="text-end"><strong>{{ item.total }}</strong></td>
+                                    <td class="text-end">
+                                        {% widthratio item.total total_despachos 100 %}%
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p class="text-muted">Sin datos</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Despachos por Tipo -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-pie-chart"></i> Despachos por Tipo</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if despachos_por_tipo %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th class="text-end">Porcentaje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in despachos_por_tipo %}
+                                <tr>
+                                    <td><small>{{ item.id_tipo_despacho__nombre_tipo }}</small></td>
+                                    <td class="text-end"><strong>{{ item.total }}</strong></td>
+                                    <td class="text-end">
+                                        {% widthratio item.total total_despachos 100 %}%
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p class="text-muted">Sin datos</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Despachos por Región -->
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="bi bi-map"></i> Despachos por Región</h6>
+            </div>
+            <div class="card-body">
+                {% if despachos_por_region %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Región</th>
+                            <th class="text-end">Cantidad</th>
+                            <th class="text-end">Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in despachos_por_region %}
+                        <tr>
+                            <td>{{ item.id_farmacia_origen__id_comuna__id_region__nombre_region }}</td>
+                            <td class="text-end"><strong>{{ item.total }}</strong></td>
+                            <td class="text-end">
+                                {% widthratio item.total total_despachos 100 %}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted">Sin datos</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

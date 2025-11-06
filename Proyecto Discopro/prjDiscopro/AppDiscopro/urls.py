@@ -22,4 +22,23 @@ urlpatterns = [
     path('moto/<int:pk>/', views.moto_detail, name='moto_detail'),
     path('moto/<int:pk>/editar/', views.MotoUpdateView.as_view(), name='moto_update'),
     path('moto/<int:pk>/eliminar/', views.MotoDeleteView.as_view(), name='moto_delete'),
+
+    # Despacho - Lista y detalle
+    path('despacho/', views.DespachoListView.as_view(), name='despacho_list'),
+    path('despacho/<int:pk>/', views.despacho_detail, name='despacho_detail'),
+    
+    # Crear despachos
+    path('despacho/directo/crear/', views.despacho_directo_create, name='despacho_directo_create'),
+    path('despacho/receta/crear/', views.despacho_receta_create, name='despacho_receta_create'),
+    path('despacho/traslado/crear/', views.despacho_traslado_create, name='despacho_traslado_create'),
+    path('despacho/reenvio/crear/', views.despacho_reenvio_create, name='despacho_reenvio_create'),
+    
+    # Modificar y anular
+    path('despacho/<int:pk>/modificar/', views.despacho_update, name='despacho_update'),
+    path('despacho/<int:pk>/anular/', views.despacho_anular, name='despacho_anular'),
+    
+    # Reportes
+    path('reportes/diario/', views.reporte_diario, name='reporte_diario'),
+    path('reportes/mensual/', views.reporte_mensual, name='reporte_mensual'),
+    path('reportes/pdf/', views.generar_pdf_reporte, name='generar_pdf_reporte'),
 ]

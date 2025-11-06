@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Nuevo Despacho con Reenvío{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-arrow-repeat"></i> Nuevo Despacho con Reenvío
+            </h2>
+            <a href="{% url 'despacho_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Despacho con Reenvío:</strong> Se realiza cuando un despacho previo no fue exitoso. Se crea un nuevo despacho basado en el despacho fallido original.
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <h5 class="mb-3 text-danger"><i class="bi bi-arrow-repeat"></i> Despacho a Reenviar</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Despacho Original Fallido <span class="text-danger">*</span></label>
+                        {{ form.id_despacho_original }}
+                        <small class="text-muted d-block">Seleccione el despacho que desea reenviar</small>
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3 text-primary"><i class="bi bi-geo-alt"></i> Nueva Información de Entrega</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Dirección de Entrega <span class="text-danger">*</span></label>
+                        {{ form.direccion_entrega }}
+                        <small class="text-muted d-block">Puede mantener la dirección original o modificarla</small>
+                    </div>
+
+                    <hr>
+                    <h5 class="mb-3 text-primary"><i class="bi bi-person-badge"></i> Nueva Asignación</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Motorista <span class="text-danger">*</span></label>
+                            {{ form.id_motorista }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Moto <span class="text-danger">*</span></label>
+                            {{ form.id_moto }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Observaciones del Reenvío <span class="text-danger">*</span></label>
+                        {{ form.observaciones }}
+                        <small class="text-muted d-block">Indique el motivo del reenvío y cualquier información relevante</small>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Crear Reenvío
+                        </button>
+                        <a href="{% url 'despacho_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

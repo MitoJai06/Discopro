@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% block title %}Despacho #{{ despacho.id_despacho }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-truck"></i> 
+                Despacho #{{ despacho.id_despacho }}
+                {% if despacho.estado == 'CREADO' %}
+                    <span class="badge bg-secondary">{{ despacho.get_estado_display }}</span>
+                {% elif despacho.estado == 'ASIGNADO' %}
+                    <span class="badge bg-info">{{ despacho.get_estado_display }}</span>
+                {% elif despacho.estado == 'EN_CURSO' %}
+                    <span class="badge bg-warning">{{ despacho.get_estado_display }}</span>
+                {% elif despacho.estado == 'FINALIZADO' %}
+                    <span class="badge bg-success">{{ despacho.get_estado_display }}</span>
+                {% elif despacho.estado == 'CANCELADO' %}
+                    <span class="badge bg-dark">{{ despacho.get_estado_display }}</span>
+                {% elif despacho.estado == 'FALLIDO' %}
+                    <span class="badge bg-danger">{{ despacho.get_estado_display }}</span>
+                {% endif %}
+            </h2>
+            <div>
+                <a href="{% url 'despacho_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        <!-- INFORMACIÓN GENERAL -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información del Despacho</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Tipo de Despacho:</strong> {{ despacho.id_tipo_despacho.nombre_tipo }}</p>
+                        <p><strong>Fecha Creación:</strong> {{ despacho.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                        {% if despacho.fecha_finalizacion %}
+                        <p><strong>Fecha Finalización:</strong> {{ despacho.fecha_finalizacion|date:"d/m/Y H:i" }}</p>
+                        {% endif %}
+                        <p><strong>Código Orden Farmacia:</strong> {{ despacho.codigo_orden_farmacia|default:"N/A" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Farmacia Origen:</strong> {{ despacho.id_farmacia_origen.nombre_farmacia }}</p>
+                        {% if despacho.id_farmacia_origen_secundaria %}
+                        <p><strong>Farmacia Secundaria:</strong> {{ despacho.id_farmacia_origen_secundaria.nombre_farmacia }}</p>
+                        {% endif %}
+                        <p><strong>Dirección Entrega:</strong> {{ despacho.direccion_entrega }}</p>
+                    </div>
+                </div>
+                {% if despacho.observaciones %}
+                <hr>
+                <p><strong>Observaciones:</strong></p>
+                <p class="text-muted">{{ despacho.observaciones|linebreaks }}</p>
+                {% endif %}
+                
+                <div class="mt-3">
+                    {% if despacho.estado not in 'FINALIZADO,CANCELADO' %}
+                    <a href="{% url 'despacho_update' despacho.id_despacho %}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Modificar
+                    </a>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#anularModal">
+                        <i class="bi bi-x-circle"></i> Anular
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- INFORMACIÓN DE RECETA (si aplica) -->
+        {% if receta %}
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-file-medical"></i> Información de Receta</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Número Receta:</strong> {{ receta.numero_receta|default:"N/A" }}</p>
+                        <p><strong>Médico:</strong> {{ receta.nombre_medico|default:"N/A" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Fecha Emisión:</strong> {{ receta.fecha_emision|date:"d/m/Y"|default:"N/A" }}</p>
+                        {% if receta.ruta_archivo %}
+                        <p><a href="{{ receta.ruta_archivo }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-paperclip"></i> Ver Archivo
+                        </a></p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if receta.observaciones %}
+                <p><strong>Observaciones:</strong> {{ receta.observaciones }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- INFORMACIÓN DE REENVÍO (si aplica) -->
+        {% if despacho_original %}
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="bi bi-arrow-repeat"></i> Información de Reenvío</h6>
+            </div>
+            <div class="card-body">
+                <p>Este es un reenvío del <a href="{% url 'despacho_detail' despacho_original.id_despacho %}" class="alert-link">Despacho #{{ despacho_original.id_despacho }}</a></p>
+                <p><strong>Fecha Original:</strong> {{ despacho_original.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                <p><strong>Estado Original:</strong> 
+                    <span class="badge bg-danger">{{ despacho_original.get_estado_display }}</span>
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- MOTORISTA Y MOTO -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-person-badge"></i> Motorista y Vehículo</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Motorista</h6>
+                        <p><strong>Nombre:</strong> {{ despacho.id_motorista.nombre }} {{ despacho.id_motorista.apellido_paterno }}</p>
+                        <p><strong>RUT:</strong> {{ despacho.id_motorista.rut }}</p>
+                        <p><strong>Teléfono:</strong> {{ despacho.id_motorista.telefono }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Moto</h6>
+                        <p><strong>Patente:</strong> <span class="badge bg-primary">{{ despacho.id_moto.patente }}</span></p>
+                        <p><strong>Marca/Modelo:</strong> {{ despacho.id_moto.marca }} {{ despacho.id_moto.modelo }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INCIDENCIAS -->
+        <div class="card">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Incidencias</h6>
+                <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#incidenciaModal">
+                    <i class="bi bi-plus"></i> Registrar Incidencia
+                </button>
+            </div>
+            <div class="card-body">
+                {% if incidencias %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for incidencia in incidencias %}
+                            <tr>
+                                <td>{{ incidencia.fecha_incidencia|date:"d/m/Y H:i" }}</td>
+                                <td>{{ incidencia.get_tipo_incidencia_display }}</td>
+                                <td>{{ incidencia.descripcion|truncatewords:15 }}</td>
+                                <td>
+                                    {% if incidencia.resuelto %}
+                                        <span class="badge bg-success">Resuelto</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted"><i class="bi bi-info-circle"></i> No hay incidencias registradas</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Registrar Incidencia -->
+<div class="modal fade" id="incidenciaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrar Incidencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="add_incidencia" value="1">
+                    {% for field in incidencia_form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Anular Despacho -->
+<div class="modal fade" id="anularModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmar Anulación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'despacho_anular' despacho.id_despacho %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>¿Está seguro de anular el Despacho #{{ despacho.id_despacho }}?</p>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo de Anulación:</label>
+                        <textarea name="motivo" class="form-control" rows="3" required placeholder="Indique el motivo de la anulación"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Anular Despacho</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

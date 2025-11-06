@@ -23,21 +23,36 @@ class ContactoEmergencia(models.Model):
     class Meta:
         db_table = 'contacto_emergencia'
 
-
 class Despacho(models.Model):
-    id_despacho = models.IntegerField(db_column='ID_DESPACHO', primary_key=True)  # Field name made lowercase.
-    fecha_creacion = models.DateTimeField(db_column='FECHA_CREACION')  # Field name made lowercase.
-    id_tipo_despacho = models.ForeignKey('TipoDespacho', models.DO_NOTHING, db_column='ID_TIPO_DESPACHO')  # Field name made lowercase.
-    id_farmacia_origen = models.ForeignKey('Farmacia', models.DO_NOTHING, db_column='ID_FARMACIA_ORIGEN')  # Field name made lowercase.
-    id_farmacia_origen_secundaria = models.ForeignKey('Farmacia', models.DO_NOTHING, db_column='ID_FARMACIA_ORIGEN_SECUNDARIA', related_name='despacho_id_farmacia_origen_secundaria_set', blank=True, null=True)  # Field name made lowercase.
-    id_motorista = models.ForeignKey('Motorista', models.DO_NOTHING, db_column='ID_MOTORISTA')  # Field name made lowercase.
-    id_moto = models.ForeignKey('Moto', models.DO_NOTHING, db_column='ID_MOTO')  # Field name made lowercase.
-    direccion_entrega = models.CharField(db_column='DIRECCION_ENTREGA', max_length=200)  # Field name made lowercase.
-    estado = models.CharField(db_column='ESTADO', max_length=10)  # Field name made lowercase.
-    codigo_orden_farmacia = models.CharField(db_column='CODIGO_ORDEN_FARMACIA', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    ESTADO_CHOICES = [
+        ('CREADO', 'Creado'),
+        ('ASIGNADO', 'Asignado'),
+        ('EN_CURSO', 'En Curso'),
+        ('FINALIZADO', 'Finalizado'),
+        ('CANCELADO', 'Cancelado'),
+        ('FALLIDO', 'Fallido'),
+    ]
+    
+    id_despacho = models.AutoField(db_column='ID_DESPACHO', primary_key=True)
+    fecha_creacion = models.DateTimeField(db_column='FECHA_CREACION', auto_now_add=True)
+    id_tipo_despacho = models.ForeignKey('TipoDespacho', models.DO_NOTHING, db_column='ID_TIPO_DESPACHO')
+    id_farmacia_origen = models.ForeignKey('Farmacia', models.DO_NOTHING, db_column='ID_FARMACIA_ORIGEN', related_name='despachos_origen')
+    id_farmacia_origen_secundaria = models.ForeignKey('Farmacia', models.DO_NOTHING, db_column='ID_FARMACIA_ORIGEN_SECUNDARIA', related_name='despachos_secundarios', blank=True, null=True)
+    id_motorista = models.ForeignKey('Motorista', models.DO_NOTHING, db_column='ID_MOTORISTA')
+    id_moto = models.ForeignKey('Moto', models.DO_NOTHING, db_column='ID_MOTO')
+    direccion_entrega = models.CharField(db_column='DIRECCION_ENTREGA', max_length=200)
+    estado = models.CharField(db_column='ESTADO', max_length=10, choices=ESTADO_CHOICES, default='CREADO')
+    codigo_orden_farmacia = models.CharField(db_column='CODIGO_ORDEN_FARMACIA', max_length=50, blank=True, null=True)
+    id_despacho_original = models.ForeignKey('self', models.SET_NULL, db_column='ID_DESPACHO_ORIGINAL', blank=True, null=True, related_name='reenvios')
+    fecha_finalizacion = models.DateTimeField(db_column='FECHA_FINALIZACION', blank=True, null=True)
+    observaciones = models.TextField(db_column='OBSERVACIONES', blank=True, null=True)
 
     class Meta:
         db_table = 'despacho'
+        ordering = ['-fecha_creacion']
+    
+    def __str__(self):
+        return f"Despacho #{self.id_despacho} - {self.get_estado_display()}"
 
 
 class DocumentacionMoto(models.Model):
@@ -159,12 +174,15 @@ class Rol(models.Model):
 
 
 class TipoDespacho(models.Model):
-    id_tipo_despacho = models.IntegerField(db_column='ID_TIPO_DESPACHO', primary_key=True)  # Field name made lowercase.
-    nombre_tipo = models.CharField(db_column='NOMBRE_TIPO', unique=True, max_length=50)  # Field name made lowercase.
-    descripcion = models.CharField(db_column='DESCRIPCION', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    id_tipo_despacho = models.AutoField(db_column='ID_TIPO_DESPACHO', primary_key=True)
+    nombre_tipo = models.CharField(db_column='NOMBRE_TIPO', unique=True, max_length=50)
+    descripcion = models.CharField(db_column='DESCRIPCION', max_length=255, blank=True, null=True)
 
     class Meta:
         db_table = 'tipo_despacho'
+    
+    def __str__(self):
+        return self.nombre_tipo
 
 
 class Usuario(models.Model):
@@ -176,3 +194,46 @@ class Usuario(models.Model):
 
     class Meta:
         db_table = 'usuario'
+
+
+class Incidencia(models.Model):
+    TIPO_INCIDENCIA_CHOICES = [
+        ('CLIENTE_AUSENTE', 'Cliente Ausente'),
+        ('DIRECCION_INCORRECTA', 'Dirección Incorrecta'),
+        ('CLIENTE_RECHAZA', 'Cliente Rechaza Pedido'),
+        ('ACCIDENTE', 'Accidente'),
+        ('FALLA_MOTO', 'Falla Mecánica de Moto'),
+        ('PRODUCTO_INCORRECTO', 'Producto Incorrecto'),
+        ('DEMORA_TRAFICO', 'Demora por Tráfico'),
+        ('OTRO', 'Otro'),
+    ]
+    
+    id_incidencia = models.AutoField(db_column='ID_INCIDENCIA', primary_key=True)
+    id_despacho = models.ForeignKey('Despacho', models.CASCADE, db_column='ID_DESPACHO', related_name='incidencias')
+    tipo_incidencia = models.CharField(db_column='TIPO_INCIDENCIA', max_length=30, choices=TIPO_INCIDENCIA_CHOICES)
+    descripcion = models.TextField(db_column='DESCRIPCION')
+    fecha_incidencia = models.DateTimeField(db_column='FECHA_INCIDENCIA', auto_now_add=True)
+    resuelto = models.BooleanField(db_column='RESUELTO', default=False)
+    
+    class Meta:
+        db_table = 'incidencia'
+        ordering = ['-fecha_incidencia']
+    
+    def __str__(self):
+        return f"Incidencia #{self.id_incidencia} - {self.get_tipo_incidencia_display()}"
+
+
+class RecetaDespacho(models.Model):
+    id_receta = models.AutoField(db_column='ID_RECETA', primary_key=True)
+    id_despacho = models.OneToOneField('Despacho', models.CASCADE, db_column='ID_DESPACHO', related_name='receta')
+    numero_receta = models.CharField(db_column='NUMERO_RECETA', max_length=50, blank=True, null=True)
+    nombre_medico = models.CharField(db_column='NOMBRE_MEDICO', max_length=100, blank=True, null=True)
+    fecha_emision = models.DateField(db_column='FECHA_EMISION', blank=True, null=True)
+    ruta_archivo = models.CharField(db_column='RUTA_ARCHIVO', max_length=255, blank=True, null=True)
+    observaciones = models.TextField(db_column='OBSERVACIONES', blank=True, null=True)
+    
+    class Meta:
+        db_table = 'receta_despacho'
+    
+    def __str__(self):
+        return f"Receta - Despacho #{self.id_despacho.id_despacho}"

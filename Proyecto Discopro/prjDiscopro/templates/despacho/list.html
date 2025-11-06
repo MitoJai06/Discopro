@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Despachos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-truck"></i> Gestión de Despachos</h2>
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-plus-circle"></i> Nuevo Despacho
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'despacho_directo_create' %}">
+                        <i class="bi bi-box-arrow-right"></i> Despacho Directo
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'despacho_receta_create' %}">
+                        <i class="bi bi-file-medical"></i> Despacho con Receta
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'despacho_traslado_create' %}">
+                        <i class="bi bi-arrow-left-right"></i> Despacho con Traslado
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'despacho_reenvio_create' %}">
+                        <i class="bi bi-arrow-repeat"></i> Despacho con Reenvío
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ENLACES A REPORTES -->
+        <div class="alert alert-info mb-3">
+            <i class="bi bi-file-earmark-bar-graph"></i> 
+            <strong>Reportes:</strong> 
+            <a href="{% url 'reporte_diario' %}" class="alert-link">Ver Reporte Diario</a> | 
+            <a href="{% url 'reporte_mensual' %}" class="alert-link">Ver Reporte Mensual</a>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="get" action="{% url 'despacho_list' %}">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <input type="text" name="q" class="form-control" placeholder="Buscar por ID, código orden, dirección..." value="{{ query }}">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <select name="estado" class="form-control">
+                                <option value="">Todos los estados</option>
+                                {% for estado in estados %}
+                                <option value="{{ estado.0 }}" {% if estado_filtro == estado.0 %}selected{% endif %}>{{ estado.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <select name="tipo" class="form-control">
+                                <option value="">Todos los tipos</option>
+                                {% for tipo in tipos_despacho %}
+                                <option value="{{ tipo.id_tipo_despacho }}" {% if tipo_filtro == tipo.id_tipo_despacho|stringformat:"s" %}selected{% endif %}>{{ tipo.nombre_tipo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <input type="date" name="fecha" class="form-control" value="{{ fecha_filtro }}">
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <button class="btn btn-primary w-100" type="submit">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                    {% if query or estado_filtro or tipo_filtro or fecha_filtro %}
+                    <div class="mt-2">
+                        <a href="{% url 'despacho_list' %}" class="btn btn-sm btn-secondary">
+                            <i class="bi bi-x-circle"></i> Limpiar Filtros
+                        </a>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                {% if despachos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Farmacia Origen</th>
+                                <th>Motorista</th>
+                                <th>Dirección</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for despacho in despachos %}
+                            <tr>
+                                <td><strong>#{{ despacho.id_despacho }}</strong></td>
+                                <td>{{ despacho.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <small class="text-muted">{{ despacho.id_tipo_despacho.nombre_tipo }}</small>
+                                </td>
+                                <td>{{ despacho.id_farmacia_origen.nombre_farmacia }}</td>
+                                <td>{{ despacho.id_motorista.nombre }} {{ despacho.id_motorista.apellido_paterno }}</td>
+                                <td>
+                                    <small>{{ despacho.direccion_entrega|truncatewords:8 }}</small>
+                                </td>
+                                <td>
+                                    {% if despacho.estado == 'CREADO' %}
+                                        <span class="badge bg-secondary">{{ despacho.get_estado_display }}</span>
+                                    {% elif despacho.estado == 'ASIGNADO' %}
+                                        <span class="badge bg-info">{{ despacho.get_estado_display }}</span>
+                                    {% elif despacho.estado == 'EN_CURSO' %}
+                                        <span class="badge bg-warning">{{ despacho.get_estado_display }}</span>
+                                    {% elif despacho.estado == 'FINALIZADO' %}
+                                        <span class="badge bg-success">{{ despacho.get_estado_display }}</span>
+                                    {% elif despacho.estado == 'CANCELADO' %}
+                                        <span class="badge bg-dark">{{ despacho.get_estado_display }}</span>
+                                    {% elif despacho.estado == 'FALLIDO' %}
+                                        <span class="badge bg-danger">{{ despacho.get_estado_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'despacho_detail' despacho.id_despacho %}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    {% if despacho.estado not in 'FINALIZADO,CANCELADO' %}
+                                    <a href="{% url 'despacho_update' despacho.id_despacho %}" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if is_paginated %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if fecha_filtro %}&fecha={{ fecha_filtro }}{% endif %}">Primera</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if fecha_filtro %}&fecha={{ fecha_filtro }}{% endif %}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        <li class="page-item active">
+                            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if fecha_filtro %}&fecha={{ fecha_filtro }}{% endif %}">Siguiente</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if fecha_filtro %}&fecha={{ fecha_filtro }}{% endif %}">Última</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i> No se encontraron despachos.
+                    {% if query or estado_filtro or tipo_filtro or fecha_filtro %}
+                        <a href="{% url 'despacho_list' %}">Ver todos</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
