@@ -126,3 +126,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# -----------------------
+# Notas de seguridad (resumen en archivo de configuración)
+# - SECRET_KEY: actualmente hardcodeada. En producción mover a variables de entorno.
+# - DEBUG: True permite información sensible en errores; cambiar a False en producción.
+# - ALLOWED_HOSTS: debe especificarse para evitar Host header attacks.
+# - STATIC_ROOT vs STATICFILES_DIRS: configurar correctamente para servir estáticos.
+# - DATABASES: credenciales hardcodeadas; usar gestor de secretos/variables de entorno.
+# -----------------------

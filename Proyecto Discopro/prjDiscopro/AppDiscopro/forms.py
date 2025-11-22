@@ -1,6 +1,14 @@
 from django import forms
 from .models import Farmacia, Motorista, Moto, ContactoEmergencia, LicenciaMotorista, DocumentacionMoto, Despacho, Incidencia, TipoDespacho
 
+# Formularios (ModelForm y Form) usados por las vistas:
+# - Los ModelForm encapsulan validación y mapeo entre HTML y modelo.
+# - Widgets definen clases CSS y tipos (date, time) para consistencia UI.
+# - Validación adicional puede implementarse con clean_<field> o clean().
+# Consideración de seguridad:
+# - Usar la validación de Django evita inyección directa en los modelos.
+# - Los datos post siempre deben revalidarse en vistas antes de guardar.
+
 class FarmaciaForm(forms.ModelForm):
     class Meta:
         model = Farmacia

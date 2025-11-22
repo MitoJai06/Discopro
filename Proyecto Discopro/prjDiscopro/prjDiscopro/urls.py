@@ -18,6 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 from AppDiscopro.views import FarmaciaListView
 
+# Configuración de URLs del proyecto.
+# Nota: hay dos rutas con path('', ...). El primer path sirve la vista 'home' y
+# el segundo incluye todo AppDiscopro.urls. El orden importa: la primera definición
+# de path('') se evalúa antes que la inclusión. Mantener claridad en rutas raíz.
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', FarmaciaListView.as_view(), name='home'),

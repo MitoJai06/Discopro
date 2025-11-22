@@ -1,10 +1,18 @@
+# Definición de modelos (ORM) que representan entidades del dominio:
+# - Claves primarias y relaciones (ForeignKey, OneToOne, ManyToMany) están explícitas.
+# - Se aplican constraints de unicidad y unique_together para preservar integridad.
+# - on_delete controlado (DO_NOTHING o CASCADE) según el comportamiento esperado.
+# Buenas prácticas:
+# - Validar datos en forms/serializers antes de persistir.
+# - Evitar exponer campos sensibles directamente en vistas/plantillas.
+
 from django.db import models
 
 
 class Comuna(models.Model):
-    id_comuna = models.IntegerField(db_column='ID_COMUNA', primary_key=True)  # Field name made lowercase.
-    nombre_comuna = models.CharField(db_column='NOMBRE_COMUNA', max_length=50)  # Field name made lowercase.
-    id_region = models.ForeignKey('Region', models.DO_NOTHING, db_column='ID_REGION')  # Field name made lowercase.
+    id_comuna = models.IntegerField(db_column='ID_COMUNA', primary_key=True)
+    nombre_comuna = models.CharField(db_column='NOMBRE_COMUNA', max_length=50)
+    id_region = models.ForeignKey('Region', models.DO_NOTHING, db_column='ID_REGION')
 
     class Meta:
         db_table = 'comuna'
@@ -14,11 +22,11 @@ class Comuna(models.Model):
 
 
 class ContactoEmergencia(models.Model):
-    id_contacto = models.AutoField(db_column='ID_CONTACTO', primary_key=True)  # Field name made lowercase.
-    id_motorista = models.ForeignKey('Motorista', models.DO_NOTHING, db_column='ID_MOTORISTA')  # Field name made lowercase.
-    nombre_completo = models.CharField(db_column='NOMBRE_COMPLETO', max_length=100)  # Field name made lowercase.
-    parentesco = models.CharField(db_column='PARENTESCO', max_length=50, blank=True, null=True)  # Field name made lowercase.
-    telefono = models.CharField(db_column='TELEFONO', max_length=20)  # Field name made lowercase.
+    id_contacto = models.AutoField(db_column='ID_CONTACTO', primary_key=True)
+    id_motorista = models.ForeignKey('Motorista', models.DO_NOTHING, db_column='ID_MOTORISTA')
+    nombre_completo = models.CharField(db_column='NOMBRE_COMPLETO', max_length=100)
+    parentesco = models.CharField(db_column='PARENTESCO', max_length=50, blank=True, null=True)
+    telefono = models.CharField(db_column='TELEFONO', max_length=20)
 
     class Meta:
         db_table = 'contacto_emergencia'

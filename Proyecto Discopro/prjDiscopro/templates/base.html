@@ -11,6 +11,11 @@
     <style>
         /* Estilos adicionales inline si lo requieres */
     </style>
+    <!-- Plantilla base: conjunto de layout, inclusión de CSS/JS y contenedores para mensajes.
+         Seguridad en plantillas:
+         - Usar {% csrf_token %} en cada <form method="post"> para protección CSRF.
+         - Evitar marcar como safe variables que provengan del usuario sin sanitizar.
+    -->
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">

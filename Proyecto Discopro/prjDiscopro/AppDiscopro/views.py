@@ -18,6 +18,16 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from io import BytesIO
 
+# Vistas principales (CBV y funciones):
+# - ListView / CreateView / UpdateView / DeleteView para operaciones CRUD.
+# - Funciones para casos especiales (detalle con modales, registros asociados, reportes).
+# Seguridad y validación en las vistas:
+# - get_object_or_404 evita exponer excepciones de base de datos y controla 404.
+# - Las vistas POST usan form.is_valid() antes de persistir datos.
+# - Uso de messages para feedback al usuario (no exponer datos sensibles).
+# - Todas las plantillas con forms contienen {% csrf_token %} (protección CSRF).
+# - Chequeos de estado (ej. no modificar FINALIZADO/CANCELADO) para evitar cambios inválidos.
+
 # ============= VIEWS FARMACIA =============
 
 class FarmaciaListView(ListView):
