@@ -11,7 +11,6 @@ Patrones detectados y su finalidad
          ...
      </form>
      ```
-   - Recomendación: mantener CSRF activado en middleware (ya está en settings).
 
 2. Validación del lado servidor (ModelForm)
    - Qué hace: valida y sanitiza los datos antes de persistirlos.
@@ -23,7 +22,7 @@ Patrones detectados y su finalidad
          despacho = form.save(commit=False)
          despacho.save()
      ```
-   - Recomendación: añadir validaciones específicas en `clean()` según reglas de negocio.
+   
 
 3. Uso del ORM (protección contra SQL Injection)
    - Qué hace: construye consultas parametrizadas evitando concatenación manual.
@@ -32,7 +31,6 @@ Patrones detectados y su finalidad
      ```python
      despachos = Despacho.objects.filter(fecha_creacion__date=fecha_obj)
      ```
-   - Recomendación: evitar `raw()` sin parametrizar.
 
 4. Manejo de recursos inexistentes con get_object_or_404
    - Qué hace: evita exponer tracebacks y controla acceso a recursos no presentes.
@@ -55,7 +53,6 @@ Patrones detectados y su finalidad
 6. Constraints en modelos (integridad)
    - Qué hace: evita duplicados y mantiene consistencia (unique, unique_together).
    - Dónde: `models.py` (ej. `DocumentacionMoto.unique_together`).
-   - Recomendación: añadir migraciones/constraints adicionales cuando aplique.
 
 7. Feedback seguro (messages)
    - Qué hace: comunica resultados al usuario sin exponer información sensible.
