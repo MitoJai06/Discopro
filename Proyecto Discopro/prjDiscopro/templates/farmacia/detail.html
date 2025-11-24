@@ -36,13 +36,6 @@
                                 N/A
                             {% endif %}
                         </p>
-                        <p><strong>Coordenadas:</strong> 
-                            {% if farmacia.latitud %}
-                                {{ farmacia.latitud }}, {{ farmacia.longitud }}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </p>
                     </div>
                 </div>
                 <a href="{% url 'farmacia_update' farmacia.codigo_farmacia %}" class="btn btn-warning mt-3">

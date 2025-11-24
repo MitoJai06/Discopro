@@ -70,19 +70,6 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Latitud</label>
-                            {{ form.latitud }}
-                            <small class="text-muted">Ej: -33.550000</small>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Longitud</label>
-                            {{ form.longitud }}
-                            <small class="text-muted">Ej: -70.666666</small>
-                        </div>
-                    </div>
-
                     {% if form.non_field_errors %}
                         <div class="alert alert-danger">{{ form.non_field_errors }}</div>
                     {% endif %}

@@ -190,7 +190,7 @@ class DespachoDirectoForm(DespachoBaseForm):
 class DespachoConRecetaForm(DespachoBaseForm):
     """Formulario para despacho con receta"""
     numero_receta = forms.CharField(
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Número de receta'
@@ -198,7 +198,7 @@ class DespachoConRecetaForm(DespachoBaseForm):
         label='Número de Receta'
     )
     nombre_medico = forms.CharField(
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Nombre del médico'
@@ -206,7 +206,7 @@ class DespachoConRecetaForm(DespachoBaseForm):
         label='Médico'
     )
     fecha_emision_receta = forms.DateField(
-        required=False,
+        required=True,
         widget=forms.DateInput(attrs={
             'class': 'form-control',
             'type': 'date'
