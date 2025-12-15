@@ -1,13 +1,254 @@
 from django import forms
-from .models import Farmacia, Motorista, Moto, ContactoEmergencia, LicenciaMotorista, DocumentacionMoto, Despacho, Incidencia, TipoDespacho
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
+from .models import (
+    UsuarioPersonalizado, Rol, Farmacia, Motorista, Moto, 
+    ContactoEmergencia, LicenciaMotorista, DocumentacionMoto, 
+    Despacho, Incidencia, TipoDespacho
+)
 
-# Formularios (ModelForm y Form) usados por las vistas:
-# - Los ModelForm encapsulan validación y mapeo entre HTML y modelo.
-# - Widgets definen clases CSS y tipos (date, time) para consistencia UI.
-# - Validación adicional puede implementarse con clean_<field> o clean().
-# Consideración de seguridad:
-# - Usar la validación de Django evita inyección directa en los modelos.
-# - Los datos post siempre deben revalidarse en vistas antes de guardar.
+# ============= FORMULARIOS DE AUTENTICACIÓN =============
+
+class RegistroUsuarioForm(UserCreationForm):
+    """Formulario de registro de usuarios con roles"""
+    
+    correo = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'correo@ejemplo.com'
+        }),
+        label='Correo Electrónico'
+    )
+    
+    nombre_completo = forms.CharField(
+        max_length=100,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre completo'
+        }),
+        label='Nombre Completo'
+    )
+    
+    telefono = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+56 9 XXXX XXXX'
+        }),
+        label='Teléfono'
+    )
+    
+    id_rol = forms.ModelChoiceField(
+        queryset=Rol.objects.all(),
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        }),
+        label='Rol'
+    )
+    
+    password1 = forms.CharField(
+        label='Contraseña',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Mínimo 8 caracteres'
+        }),
+        help_text='Mínimo 8 caracteres, no puede ser completamente numérica'
+    )
+    
+    password2 = forms.CharField(
+        label='Confirmar Contraseña',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Repetir contraseña'
+        })
+    )
+    
+    class Meta:
+        model = UsuarioPersonalizado
+        fields = ['nombre_usuario', 'correo', 'nombre_completo', 'telefono', 
+                  'id_rol', 'password1', 'password2']
+        widgets = {
+            'nombre_usuario': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre de usuario único'
+            }),
+        }
+        labels = {
+            'nombre_usuario': 'Nombre de Usuario',
+        }
+    
+    def clean_correo(self):
+        """Valida que el correo no esté en uso"""
+        correo = self.cleaned_data.get('correo')
+        if UsuarioPersonalizado.objects.filter(correo=correo).exists():
+            raise forms.ValidationError('Este correo ya está registrado')
+        return correo
+    
+    def save(self, commit=True):
+        """Guarda el usuario con contraseña hasheada"""
+        user = super().save(commit=False)
+        user.correo = self.cleaned_data['correo']
+        user.nombre_completo = self.cleaned_data['nombre_completo']
+        user.telefono = self.cleaned_data.get('telefono', '')
+        user.id_rol = self.cleaned_data['id_rol']
+        
+        if commit:
+            user.save()
+        return user
+
+
+class LoginForm(AuthenticationForm):
+    """Formulario de inicio de sesión personalizado"""
+    
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre de usuario',
+            'autofocus': True
+        }),
+        label='Usuario'
+    )
+    
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Contraseña'
+        }),
+        label='Contraseña'
+    )
+    
+    remember_me = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input'
+        }),
+        label='Recordarme'
+    )
+
+
+class CambiarPasswordForm(PasswordChangeForm):
+    """Formulario para cambiar contraseña"""
+    
+    old_password = forms.CharField(
+        label='Contraseña Actual',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Contraseña actual'
+        })
+    )
+    
+    new_password1 = forms.CharField(
+        label='Nueva Contraseña',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nueva contraseña'
+        }),
+        help_text='Mínimo 8 caracteres'
+    )
+    
+    new_password2 = forms.CharField(
+        label='Confirmar Nueva Contraseña',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Repetir nueva contraseña'
+        })
+    )
+
+
+class EditarPerfilForm(forms.ModelForm):
+    """Formulario para editar perfil de usuario"""
+    
+    class Meta:
+        model = UsuarioPersonalizado
+        fields = ['nombre_completo', 'correo', 'telefono']
+        widgets = {
+            'nombre_completo': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre completo'
+            }),
+            'correo': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'correo@ejemplo.com'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+56 9 XXXX XXXX'
+            }),
+        }
+        labels = {
+            'nombre_completo': 'Nombre Completo',
+            'correo': 'Correo Electrónico',
+            'telefono': 'Teléfono',
+        }
+    
+    def clean_correo(self):
+        """Valida que el correo no esté en uso por otro usuario"""
+        correo = self.cleaned_data.get('correo')
+        if UsuarioPersonalizado.objects.exclude(pk=self.instance.pk).filter(correo=correo).exists():
+            raise forms.ValidationError('Este correo ya está registrado por otro usuario')
+        return correo
+
+
+# ============= FORMULARIOS DE MODELOS EXISTENTES =============
+# (Mantener todos los formularios del archivo original aquí)
+
+class FarmaciaForm(forms.ModelForm):
+    class Meta:
+        model = Farmacia
+        fields = ['codigo_farmacia', 'nombre_farmacia', 'direccion', 'id_comuna', 
+                  'horario_apertura', 'horario_cierre', 'telefono', 'latitud', 'longitud']
+        widgets = {
+            'codigo_farmacia': forms.NumberInput(attrs={'class': 'form-control'}),
+            'nombre_farmacia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la farmacia'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dirección'}),
+            'id_comuna': forms.Select(attrs={'class': 'form-control'}),
+            'horario_apertura': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'horario_cierre': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+56...'}),
+            'latitud': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001', 'placeholder': '-33.000000'}),
+            'longitud': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001', 'placeholder': '-70.000000'}),
+        }
+        labels = {
+            'codigo_farmacia': 'Código',
+            'nombre_farmacia': 'Nombre',
+            'id_comuna': 'Comuna',
+            'horario_apertura': 'Apertura',
+            'horario_cierre': 'Cierre',
+        }
+
+
+class MotoristaForm(forms.ModelForm):
+    class Meta:
+        model = Motorista
+        fields = ['codigo_motorista', 'rut', 'pasaporte', 'nombre', 'apellido_paterno', 
+                  'apellido_materno', 'fecha_nacimiento', 'direccion', 'id_comuna', 
+                  'telefono', 'correo', 'incluye_moto_personal']
+        widgets = {
+            'codigo_motorista': forms.NumberInput(attrs={'class': 'form-control'}),
+            'rut': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'XX.XXX.XXX-X'}),
+            'pasaporte': forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'apellido_paterno': forms.TextInput(attrs={'class': 'form-control'}),
+            'apellido_materno': forms.TextInput(attrs={'class': 'form-control'}),
+            'fecha_nacimiento': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
+            'id_comuna': forms.Select(attrs={'class': 'form-control'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control'}),
+            'correo': forms.EmailInput(attrs={'class': 'form-control'}),
+            'incluye_moto_personal': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'codigo_motorista': 'Código',
+            'apellido_paterno': 'Apellido Paterno',
+            'apellido_materno': 'Apellido Materno',
+            'fecha_nacimiento': 'Fecha Nacimiento',
+            'id_comuna': 'Comuna',
+            'correo': 'Correo Electrónico',
+            'incluye_moto_personal': '¿Incluye Moto Personal?',
+        }
 
 class FarmaciaForm(forms.ModelForm):
     class Meta:

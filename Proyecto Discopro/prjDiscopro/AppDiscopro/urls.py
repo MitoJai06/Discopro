@@ -1,7 +1,28 @@
 from django.urls import path
 from . import views
+from .auth_views import (
+    login_view, logout_view, registro_usuario_view, perfil_view,
+    editar_perfil_view, cambiar_password_view, UsuariosListView,
+    usuario_detail_view, usuario_toggle_active_view, 
+    usuario_cambiar_rol_view, usuario_resetear_password_view
+)
 
 urlpatterns = [
+    # Autenticación
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('registro/', registro_usuario_view, name='registro'),
+    path('perfil/', perfil_view, name='perfil'),
+    path('perfil/editar/', editar_perfil_view, name='editar_perfil'),
+    path('perfil/cambiar-password/', cambiar_password_view, name='cambiar_password'),
+    
+    # Gestión de usuarios (solo gerentes)
+    path('usuarios/', UsuariosListView.as_view(), name='usuarios_list'),
+    path('usuarios/<int:pk>/', usuario_detail_view, name='usuario_detail'),
+    path('usuarios/<int:pk>/toggle-active/', usuario_toggle_active_view, name='usuario_toggle_active'),
+    path('usuarios/<int:pk>/cambiar-rol/', usuario_cambiar_rol_view, name='usuario_cambiar_rol'),
+    path('usuarios/<int:pk>/resetear-password/', usuario_resetear_password_view, name='usuario_resetear_password'),
+    
     # Farmacia
     path('farmacia/', views.FarmaciaListView.as_view(), name='farmacia_list'),
     path('farmacia/crear/', views.FarmaciaCreateView.as_view(), name='farmacia_create'),

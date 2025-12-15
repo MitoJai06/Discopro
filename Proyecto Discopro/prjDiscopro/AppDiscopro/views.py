@@ -1,16 +1,28 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db.models import Q, Count
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.http import HttpResponse
+
 from .models import (Farmacia, Motorista, Moto, ContactoEmergencia, 
-                     LicenciaMotorista, DocumentacionMoto, AsignacionMotoristaFarmacia, Despacho, TipoDespacho, RecetaDespacho, Incidencia, Region, Comuna)
+                     LicenciaMotorista, DocumentacionMoto, AsignacionMotoristaFarmacia, 
+                     Despacho, TipoDespacho, RecetaDespacho, Incidencia, Region, Comuna)
 from .forms import (FarmaciaForm, MotoristaForm, ContactoEmergenciaForm, 
-                    LicenciaMotoristaForm, MotoForm, DocumentacionMotoForm, DespachoDirectoForm, DespachoConRecetaForm, DespachoConTrasladoForm, DespachoConReenvioForm, ModificarDespachoForm, IncidenciaForm)
+                    LicenciaMotoristaForm, MotoForm, DocumentacionMotoForm, 
+                    DespachoDirectoForm, DespachoConRecetaForm, DespachoConTrasladoForm, 
+                    DespachoConReenvioForm, ModificarDespachoForm, IncidenciaForm)
+from .decorators import (
+    operadora_o_gerente, supervisor_o_gerente, 
+    OperadoraOGerenteMixin, SupervisorOGerenteMixin,
+    usuario_puede_modificar_despacho, usuario_puede_anular_despacho
+)
+
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib import colors
 from reportlab.lib.units import inch
@@ -30,7 +42,7 @@ from io import BytesIO
 
 # ============= VIEWS FARMACIA =============
 
-class FarmaciaListView(ListView):
+class FarmaciaListView(LoginRequiredMixin, ListView):
     model = Farmacia
     template_name = 'farmacia/list.html'
     context_object_name = 'farmacias'
@@ -56,7 +68,7 @@ class FarmaciaListView(ListView):
         return context
 
 
-class FarmaciaCreateView(SuccessMessageMixin, CreateView):
+class FarmaciaCreateView(LoginRequiredMixin,SuccessMessageMixin, CreateView):
     model = Farmacia
     form_class = FarmaciaForm
     template_name = 'farmacia/form.html'
@@ -64,7 +76,7 @@ class FarmaciaCreateView(SuccessMessageMixin, CreateView):
     success_message = "Farmacia creada exitosamente"
 
 
-class FarmaciaUpdateView(SuccessMessageMixin, UpdateView):
+class FarmaciaUpdateView(LoginRequiredMixin,SuccessMessageMixin, UpdateView):
     model = Farmacia
     form_class = FarmaciaForm
     template_name = 'farmacia/form.html'
@@ -72,13 +84,13 @@ class FarmaciaUpdateView(SuccessMessageMixin, UpdateView):
     success_message = "Farmacia actualizada exitosamente"
 
 
-class FarmaciaDeleteView(SuccessMessageMixin, DeleteView):
+class FarmaciaDeleteView(LoginRequiredMixin,SuccessMessageMixin, DeleteView):
     model = Farmacia
     template_name = 'confirm_delete.html'
     success_url = reverse_lazy('farmacia_list')
     success_message = "Farmacia eliminada"
 
-
+@login_required
 def farmacia_detail(request, pk):
     """Vista detalle de farmacia con asignación de motoristas"""
     farmacia = get_object_or_404(Farmacia, codigo_farmacia=pk)
@@ -146,7 +158,7 @@ def farmacia_detail(request, pk):
 
 # ============= VIEWS MOTORISTA =============
 
-class MotoristaListView(ListView):
+class MotoristaListView(LoginRequiredMixin,ListView):
     model = Motorista
     template_name = 'motorista/list.html'
     context_object_name = 'motoristas'
@@ -175,7 +187,7 @@ class MotoristaListView(ListView):
         return context
 
 
-class MotoristaCreateView(SuccessMessageMixin, CreateView):
+class MotoristaCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Motorista
     form_class = MotoristaForm
     template_name = 'motorista/form.html'
@@ -183,7 +195,7 @@ class MotoristaCreateView(SuccessMessageMixin, CreateView):
     success_message = "Motorista creado exitosamente"
 
 
-class MotoristaUpdateView(SuccessMessageMixin, UpdateView):
+class MotoristaUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Motorista
     form_class = MotoristaForm
     template_name = 'motorista/form.html'
@@ -191,13 +203,13 @@ class MotoristaUpdateView(SuccessMessageMixin, UpdateView):
     success_message = "Motorista actualizado exitosamente"
 
 
-class MotoristaDeleteView(SuccessMessageMixin, DeleteView):
+class MotoristaDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Motorista
     template_name = 'confirm_delete.html'
     success_url = reverse_lazy('motorista_list')
     success_message = "Motorista eliminado"
 
-
+@login_required
 def motorista_detail(request, pk):
     motorista = get_object_or_404(Motorista, codigo_motorista=pk)
     contactos = motorista.contactoemergencia_set.all()
@@ -242,7 +254,7 @@ def motorista_detail(request, pk):
 
 # ============= VIEWS MOTO =============
 
-class MotoListView(ListView):
+class MotoListView(LoginRequiredMixin, ListView):
     model = Moto
     template_name = 'moto/list.html'
     context_object_name = 'motos'
@@ -269,7 +281,7 @@ class MotoListView(ListView):
         return context
 
 
-class MotoCreateView(SuccessMessageMixin, CreateView):
+class MotoCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Moto
     form_class = MotoForm
     template_name = 'moto/form.html'
@@ -277,7 +289,7 @@ class MotoCreateView(SuccessMessageMixin, CreateView):
     success_message = "Moto creada exitosamente"
 
 
-class MotoUpdateView(SuccessMessageMixin, UpdateView):
+class MotoUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Moto
     form_class = MotoForm
     template_name = 'moto/form.html'
@@ -285,13 +297,13 @@ class MotoUpdateView(SuccessMessageMixin, UpdateView):
     success_message = "Moto actualizada exitosamente"
 
 
-class MotoDeleteView(SuccessMessageMixin, DeleteView):
+class MotoDeleteView(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Moto
     template_name = 'confirm_delete.html'
     success_url = reverse_lazy('moto_list')
     success_message = "Moto eliminada"
 
-
+@login_required
 def moto_detail(request, pk):
     moto = get_object_or_404(Moto, codigo_moto=pk)
     documentacion = DocumentacionMoto.objects.filter(id_moto=moto).order_by('-anio')
@@ -314,7 +326,7 @@ def moto_detail(request, pk):
 
 # ============= VIEWS DESPACHO =============
 
-class DespachoListView(ListView):
+class DespachoListView(LoginRequiredMixin, ListView):
     model = Despacho
     template_name = 'despacho/list.html'
     context_object_name = 'despachos'
@@ -365,7 +377,7 @@ class DespachoListView(ListView):
         context['fecha_filtro'] = self.request.GET.get('fecha', '')
         return context
 
-
+@login_required
 def despacho_detail(request, pk):
     """Vista detalle de despacho con incidencias"""
     despacho = get_object_or_404(Despacho, id_despacho=pk)
@@ -401,7 +413,8 @@ def despacho_detail(request, pk):
     
     return render(request, 'despacho/detail.html', context)
 
-
+@login_required
+@operadora_o_gerente
 def despacho_directo_create(request):
     """Crear despacho directo"""
     if request.method == 'POST':
@@ -418,7 +431,8 @@ def despacho_directo_create(request):
     
     return render(request, 'despacho/form_directo.html', {'form': form})
 
-
+@login_required
+@operadora_o_gerente
 def despacho_receta_create(request):
     """Crear despacho con receta"""
     if request.method == 'POST':
@@ -445,7 +459,8 @@ def despacho_receta_create(request):
     
     return render(request, 'despacho/form_receta.html', {'form': form})
 
-
+@login_required
+@operadora_o_gerente
 def despacho_traslado_create(request):
     """Crear despacho con traslado"""
     if request.method == 'POST':
@@ -462,7 +477,8 @@ def despacho_traslado_create(request):
     
     return render(request, 'despacho/form_traslado.html', {'form': form})
 
-
+@login_required
+@operadora_o_gerente
 def despacho_reenvio_create(request):
     """Crear despacho con reenvío"""
     if request.method == 'POST':
@@ -491,10 +507,15 @@ def despacho_reenvio_create(request):
     
     return render(request, 'despacho/form_reenvio.html', {'form': form})
 
-
+@login_required
 def despacho_update(request, pk):
     """Modificar despacho"""
     despacho = get_object_or_404(Despacho, id_despacho=pk)
+    
+    # Verificar permisos: gerente puede modificar cualquiera, operadora solo los suyos
+    if not usuario_puede_modificar_despacho(request.user, despacho):
+        messages.error(request, 'No tienes permisos para modificar este despacho')
+        return redirect('despacho_detail', pk=pk)
     
     # No permitir modificar despachos finalizados o cancelados
     if despacho.estado in ['FINALIZADO', 'CANCELADO']:
@@ -518,9 +539,13 @@ def despacho_update(request, pk):
         'despacho': despacho
     })
 
-
+@login_required
 def despacho_anular(request, pk):
-    """Anular despacho"""
+    """Anular despacho - solo gerentes"""
+    if not usuario_puede_anular_despacho(request.user):
+        messages.error(request, 'No tienes permisos para anular despachos')
+        return redirect('despacho_detail', pk=pk)
+    
     despacho = get_object_or_404(Despacho, id_despacho=pk)
     
     if request.method == 'POST':
@@ -539,6 +564,8 @@ def despacho_anular(request, pk):
 
 # ============= REPORTES =============
 
+@login_required
+@supervisor_o_gerente
 def reporte_diario(request):
     """Generar reporte diario"""
     fecha = request.GET.get('fecha')
@@ -578,6 +605,8 @@ def reporte_diario(request):
     return render(request, 'despacho/reporte_diario.html', context)
 
 
+@login_required
+@supervisor_o_gerente
 def reporte_mensual(request):
     """Generar reporte mensual"""
     fecha = request.GET.get('fecha')
@@ -628,7 +657,8 @@ def reporte_mensual(request):
     
     return render(request, 'despacho/reporte_mensual.html', context)
 
-
+@login_required
+@supervisor_o_gerente
 def generar_pdf_reporte(request):
     tipo_reporte = request.GET.get('tipo', 'diario')  # diario o mensual
     fecha = request.GET.get('fecha', timezone.now().date())
